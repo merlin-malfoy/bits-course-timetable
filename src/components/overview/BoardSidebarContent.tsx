@@ -40,8 +40,8 @@ export function BoardSidebarContent() {
 
   if (boardCourses.length === 0) {
     return (
-      <p className="rounded-lg border border-dashed border-foreground/15 px-3 py-4 text-center text-xs text-foreground/40">
-        Your board is empty. Head to the Catalog and tap &quot;+ Board&quot; on a course to add it here.
+      <p className="rounded-lg border border-dashed border-foreground/15 px-3 py-4 text-center font-mono text-xs text-foreground/60">
+        board is empty — tap &quot;+ Board&quot; on a Catalog course to add it here.
       </p>
     );
   }
@@ -51,14 +51,14 @@ export function BoardSidebarContent() {
       <input
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        placeholder="Search code or title…"
-        className="rounded-md border border-foreground/15 bg-background px-2 py-1.5 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/40"
+        placeholder="search code or title…"
+        className="rounded-md border border-foreground/15 bg-background px-2 py-1.5 font-mono text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/40"
       />
 
       <select
         value={categoryType}
         onChange={(e) => setCategoryType(e.target.value as CourseCategoryType | "ALL")}
-        className="rounded-md border border-foreground/15 bg-background px-2 py-1.5 text-sm"
+        className="rounded-md border border-foreground/15 bg-background px-2 py-1.5 font-mono text-sm"
       >
         {CATEGORY_TYPES.map((type) => (
           <option key={type} value={type}>
@@ -69,7 +69,7 @@ export function BoardSidebarContent() {
 
       <div className="flex max-h-[60vh] flex-col gap-1.5 overflow-y-auto lg:max-h-[calc(100vh-16rem)]">
         {filteredCourses.length === 0 ? (
-          <p className="py-4 text-center text-xs text-foreground/40">No courses match.</p>
+          <p className="py-4 text-center font-mono text-xs text-foreground/60">no courses match.</p>
         ) : (
           filteredCourses.map((course) => (
             <CatalogSidebarItem

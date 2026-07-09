@@ -5,8 +5,8 @@ export interface ThemeMeta {
 }
 
 export const THEMES: ThemeMeta[] = [
-  { id: "cozy", label: "Warm & Cozy", description: "Cream and terracotta — relaxed, coffee-shop energy." },
-  { id: "night-campus", label: "Cool Night Campus", description: "Deep navy with a sky-blue accent for late-night planning." },
-  { id: "high-contrast", label: "High Contrast", description: "Pure black and white with a bright accent — maximum legibility." },
-  { id: "paper-academic", label: "Paper Academic", description: "Warm paper white with an ink and maroon academic feel." },
+  { id: "night-campus", label: "Night Terminal", description: "Green phosphor on near-black — the definitive registrar terminal." },
+  { id: "cozy", label: "Violet Terminal", description: "Magenta/violet phosphor on near-black — a synthwave hacker glow." },
+  { id: "high-contrast", label: "Contrast Terminal", description: "Pure black and white with hot terminal cyan — maximum legibility." },
+  { id: "paper-academic", label: "Line Printer", description: "Light dot-matrix paper with ink-green type and a deep blue-ink accent." },
 ];

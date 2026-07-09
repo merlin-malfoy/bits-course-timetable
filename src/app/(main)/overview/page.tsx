@@ -18,11 +18,17 @@ import { useCourseCatalog } from "@/lib/state/useCourseCatalog";
 import { useTimetable } from "@/lib/state/useTimetable";
 import { computeElectiveProgress, totalCredits } from "@/lib/scheduling/creditRules";
 import { getEligibleMinors } from "@/lib/scheduling/minorRules";
+import { findDualEligibility } from "@/lib/scheduling/electiveMinorAttribution";
+import { minorDefinitions, minorCourseEntries } from "@/data/seed/minors.seed";
+import { useElectiveMinorPrompt } from "@/lib/state/useElectiveMinorPrompt";
 import { ElectiveProgressPanel } from "@/components/catalog/ElectiveProgressPanel";
 import { SemesterRow } from "@/components/overview/SemesterRow";
 import { OverviewSidebar } from "@/components/overview/OverviewSidebar";
-import { CourseBlock } from "@/components/overview/CourseBlock";
+import { CourseBlock, type MinorBadgeInfo } from "@/components/overview/CourseBlock";
 import { MinorSelector } from "@/components/overview/MinorSelector";
+import { ElectiveMinorChoiceDialog } from "@/components/ui/ElectiveMinorChoiceDialog";
+import { CreditGauge } from "@/components/ui/CreditGauge";
+import { MAX_CREDITS_PER_SEMESTER } from "@/lib/scheduling/creditRules";
 import { DEFAULT_CALENDAR_ID } from "@/lib/constants";
 import type { Course } from "@/types/course";
 import type { TimetableEntry } from "@/types/timetable";
@@ -65,9 +71,24 @@ export default function OverviewPage() {
   const removeCourseFromSemester = useTimetable((s) => s.removeCourseFromSemester);
   const setSemesterOrder = useTimetable((s) => s.setSemesterOrder);
   const setSelectedMinor = useAppStore((s) => s.setSelectedMinor);
+  const { pendingCourse, pendingMinorName, pendingContribution, checkAndPrompt, choose, dismiss } =
+    useElectiveMinorPrompt();
 
   const courseById = useMemo(() => new Map(courses.map((c) => [c.id, c])), [courses]);
   const entryById = useMemo(() => new Map(entries.map((e) => [e.id, e])), [entries]);
+
+  const selectedMinor = useMemo(
+    () => minorDefinitions.find((m) => m.id === profile?.selectedMinorId),
+    [profile?.selectedMinorId],
+  );
+  const minorRoleByCode = useMemo(() => {
+    const map = new Map<string, "core" | "elective">();
+    if (!selectedMinor) return map;
+    for (const entry of minorCourseEntries) {
+      if (entry.minorId === selectedMinor.id) map.set(entry.code, entry.role);
+    }
+    return map;
+  }, [selectedMinor]);
 
   const [board, setBoard] = useState<Board>(() => buildBoardFromEntries(entries, calendarId));
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -84,21 +105,59 @@ export default function OverviewPage() {
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
+  const calendarEntries = useMemo(() => entries.filter((e) => e.calendarId === calendarId), [entries, calendarId]);
   const allAddedCourses = useMemo(
+    () => calendarEntries.map((e) => courseById.get(e.courseId)).filter((c): c is Course => Boolean(c)),
+    [calendarEntries, courseById],
+  );
+  // A dual-eligible course's `creditContribution` choice (see
+  // ElectiveMinorChoiceDialog) determines which of these two lists it feeds —
+  // unset (not dual-eligible, or added before a contribution choice existed)
+  // still counts toward both, the original behavior.
+  const electiveProgressCourses = useMemo(
     () =>
-      entries
-        .filter((e) => e.calendarId === calendarId)
+      calendarEntries
+        .filter((e) => e.creditContribution !== "MINOR")
         .map((e) => courseById.get(e.courseId))
         .filter((c): c is Course => Boolean(c)),
-    [entries, calendarId, courseById],
+    [calendarEntries, courseById],
   );
-  const electiveProgress = useMemo(() => computeElectiveProgress(allAddedCourses), [allAddedCourses]);
-  const eligibleMinors = useMemo(() => getEligibleMinors(allAddedCourses), [allAddedCourses]);
+  const minorEligibilityCourses = useMemo(
+    () =>
+      calendarEntries
+        .filter((e) => e.creditContribution !== "ELECTIVE")
+        .map((e) => courseById.get(e.courseId))
+        .filter((c): c is Course => Boolean(c)),
+    [calendarEntries, courseById],
+  );
+  const electiveProgress = useMemo(() => computeElectiveProgress(electiveProgressCourses), [electiveProgressCourses]);
+  const eligibleMinors = useMemo(() => getEligibleMinors(minorEligibilityCourses), [minorEligibilityCourses]);
 
   function resolveCourse(itemId: string): Course | undefined {
     if (itemId.startsWith(CATALOG_PREFIX)) return courseById.get(itemId.slice(CATALOG_PREFIX.length));
     const entry = entryById.get(itemId);
     return entry ? courseById.get(entry.courseId) : undefined;
+  }
+
+  // Placed courses that belong to the currently-selected minor (core or
+  // elective) get a small badge on their card; dual-eligible ones (also a
+  // real DEL/OPEL/HUEL elective) are tappable to reconsider which
+  // requirement they count toward.
+  function getMinorBadge(itemId: string): MinorBadgeInfo | undefined {
+    if (!selectedMinor) return undefined;
+    const entry = entryById.get(itemId);
+    if (!entry) return undefined;
+    const course = courseById.get(entry.courseId);
+    if (!course) return undefined;
+    const role = minorRoleByCode.get(course.code);
+    if (!role) return undefined;
+    const dualEligible = role === "elective" && Boolean(findDualEligibility(course, selectedMinor.id));
+    return {
+      role,
+      minorName: selectedMinor.name,
+      dualEligible,
+      onReconsider: dualEligible ? () => checkAndPrompt(entry.id, course, entry.creditContribution) : undefined,
+    };
   }
 
   async function handleRemove(itemId: string) {
@@ -207,12 +266,36 @@ export default function OverviewPage() {
           const newId = await addEntry(calendarId, courseId, semesterNumber);
           resolvedIds.push(newId);
           addedCourseIds.add(courseId);
+          const addedCourse = courseById.get(courseId);
+          if (addedCourse) checkAndPrompt(newId, addedCourse);
         } else {
           resolvedIds.push(itemId);
         }
       }
       await setSemesterOrder(calendarId, semesterNumber, resolvedIds);
     }
+  }
+
+  // One-shot re-sort of every semester's courses by the chosen key — not a
+  // persisted "mode": commits through the same setSemesterOrder path as a
+  // manual drag, so dragging afterward still works normally.
+  function sortBoardBy(criterion: "credits" | "department") {
+    const compare = (a: Course, b: Course) =>
+      criterion === "credits" ? a.credits - b.credits : a.department.localeCompare(b.department);
+
+    const newBoard: Board = {};
+    for (const semesterNumber of semesters) {
+      const key = containerId(semesterNumber);
+      const itemIds = board[key] ?? [];
+      newBoard[key] = [...itemIds].sort((a, b) => {
+        const courseA = resolveCourse(a);
+        const courseB = resolveCourse(b);
+        if (!courseA || !courseB) return 0;
+        return compare(courseA, courseB);
+      });
+    }
+    setBoard(newBoard);
+    void Promise.all(semesters.map((n) => setSemesterOrder(calendarId, n, newBoard[containerId(n)] ?? [])));
   }
 
   const activeCourse = activeId ? resolveCourse(activeId) : undefined;
@@ -229,11 +312,21 @@ export default function OverviewPage() {
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
         <div className="flex min-w-0 flex-1 flex-col gap-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h1 className="text-xl font-semibold">Overview</h1>
-              <p className="text-sm text-foreground/50">
-                {totalCredits(allAddedCourses)} credits across {SEMESTER_COUNT} semesters
-              </p>
+            <div className="flex items-center gap-3">
+              <CreditGauge
+                value={totalCredits(allAddedCourses)}
+                max={SEMESTER_COUNT * MAX_CREDITS_PER_SEMESTER}
+                size={44}
+                strokeWidth={4}
+              />
+              <div>
+                <h1 className="font-mono text-xl font-semibold">
+                  <span className="text-accent">{">"}</span> overview
+                </h1>
+                <p className="font-mono text-sm text-foreground/60">
+                  {totalCredits(allAddedCourses)} credits across {SEMESTER_COUNT} semesters
+                </p>
+              </div>
             </div>
             <MinorSelector
               eligibleMinors={eligibleMinors}
@@ -244,7 +337,23 @@ export default function OverviewPage() {
 
           <ElectiveProgressPanel progress={electiveProgress} />
 
-          <div className="flex flex-row gap-3 overflow-x-auto rounded-2xl border border-foreground/10 p-4">
+          <div className="flex items-center gap-1.5 font-mono text-xs text-foreground/60">
+            <span>sort each semester by:</span>
+            <button
+              onClick={() => sortBoardBy("credits")}
+              className="rounded-md border border-foreground/20 px-2 py-1 font-medium hover:bg-foreground/5"
+            >
+              credits
+            </button>
+            <button
+              onClick={() => sortBoardBy("department")}
+              className="rounded-md border border-foreground/20 px-2 py-1 font-medium hover:bg-foreground/5"
+            >
+              department
+            </button>
+          </div>
+
+          <div className="flex snap-x snap-mandatory flex-row gap-3 overflow-x-auto rounded-2xl border border-foreground/10 bg-surface/40 p-4">
             {semesters.map((semesterNumber) => (
               <SemesterRow
                 key={semesterNumber}
@@ -252,6 +361,7 @@ export default function OverviewPage() {
                 itemIds={board[containerId(semesterNumber)] ?? []}
                 resolveCourse={resolveCourse}
                 onRemove={handleRemove}
+                getMinorBadge={getMinorBadge}
               />
             ))}
           </div>
@@ -261,6 +371,14 @@ export default function OverviewPage() {
       </div>
 
       <DragOverlay>{activeCourse ? <CourseBlock course={activeCourse} isOverlay /> : null}</DragOverlay>
+
+      <ElectiveMinorChoiceDialog
+        course={pendingCourse}
+        minorName={pendingMinorName}
+        currentContribution={pendingContribution}
+        onChoose={choose}
+        onClose={dismiss}
+      />
     </DndContext>
   );
 }

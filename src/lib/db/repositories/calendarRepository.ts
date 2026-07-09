@@ -17,4 +17,9 @@ export const calendarRepository: CalendarRepository = {
     const db = await getDb();
     await db.put("calendars", calendar);
   },
+
+  async remove(id: string) {
+    const db = await getDb();
+    await db.delete("calendars", id);
+  },
 };

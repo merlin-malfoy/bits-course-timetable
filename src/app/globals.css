@@ -1,39 +1,90 @@
 @import "tailwindcss";
 
-/* Default (pre-hydration) values match the "cozy" theme, the app default. */
+/* ============================================================
+   Terminal Registrar — every theme is a "terminal" flavor:
+   near-black or high-key ink surface, one phosphor accent,
+   monospace-accented chrome. Tint tokens (--tint-*) drive the
+   department/minor color system in tintColor.ts so course cards
+   adapt automatically per theme instead of using fixed light
+   pastels.
+   ============================================================ */
+
+/* Default (pre-hydration) values match "night-campus" — Night
+   Terminal is the app default now. */
 :root {
-  --background: #f6efe4;
-  --foreground: #3b2f2a;
-  --accent: #c8763b;
-  --accent-contrast: #fdf6ee;
+  --background: oklch(15% 0.02 165);
+  --foreground: oklch(93% 0.03 155);
+  --accent: oklch(78% 0.19 150);
+  --accent-contrast: oklch(12% 0.02 150);
+  --surface: oklch(20% 0.025 160);
+  --tint-surface-l: 24%;
+  --tint-surface-c: 0.06;
+  --tint-text-l: 82%;
+  --tint-text-c: 0.15;
+  --tint-subtext-l: 68%;
+  --tint-subtext-c: 0.1;
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 [data-theme="cozy"] {
-  --background: #f6efe4;
-  --foreground: #3b2f2a;
-  --accent: #c8763b;
-  --accent-contrast: #fdf6ee;
+  /* Violet Terminal — magenta/violet phosphor on a cool near-black surface. */
+  --background: oklch(15% 0.03 305);
+  --foreground: oklch(93% 0.025 300);
+  --accent: oklch(72% 0.22 305);
+  --accent-contrast: oklch(12% 0.02 305);
+  --surface: oklch(20% 0.035 302);
+  --tint-surface-l: 24%;
+  --tint-surface-c: 0.06;
+  --tint-text-l: 82%;
+  --tint-text-c: 0.15;
+  --tint-subtext-l: 68%;
+  --tint-subtext-c: 0.1;
 }
 
 [data-theme="night-campus"] {
-  --background: #0f1420;
-  --foreground: #e6ebf5;
-  --accent: #5aa9e6;
-  --accent-contrast: #071019;
+  /* Night Terminal — green phosphor on a cool near-black surface. */
+  --background: oklch(15% 0.02 165);
+  --foreground: oklch(93% 0.03 155);
+  --accent: oklch(78% 0.19 150);
+  --accent-contrast: oklch(12% 0.02 150);
+  --surface: oklch(20% 0.025 160);
+  --tint-surface-l: 24%;
+  --tint-surface-c: 0.06;
+  --tint-text-l: 82%;
+  --tint-text-c: 0.15;
+  --tint-subtext-l: 68%;
+  --tint-subtext-c: 0.1;
 }
 
 [data-theme="high-contrast"] {
-  --background: #000000;
-  --foreground: #ffffff;
-  --accent: #ffd60a;
-  --accent-contrast: #000000;
+  /* Contrast Terminal — pure black/white, hot terminal cyan. */
+  --background: oklch(0% 0 0);
+  --foreground: oklch(100% 0 0);
+  --accent: oklch(85% 0.16 195);
+  --accent-contrast: oklch(8% 0 0);
+  --surface: oklch(10% 0 0);
+  --tint-surface-l: 16%;
+  --tint-surface-c: 0.08;
+  --tint-text-l: 88%;
+  --tint-text-c: 0.18;
+  --tint-subtext-l: 72%;
+  --tint-subtext-c: 0.12;
 }
 
 [data-theme="paper-academic"] {
-  --background: #faf7f0;
-  --foreground: #24211d;
-  --accent: #7a2e2e;
-  --accent-contrast: #faf7f0;
+  /* Line Printer — light dot-matrix paper, ink-green type, deep blue-ink accent. */
+  --background: oklch(97% 0.008 140);
+  --foreground: oklch(22% 0.02 145);
+  --accent: oklch(35% 0.13 235);
+  --accent-contrast: oklch(97% 0.008 140);
+  --surface: oklch(93% 0.012 140);
+  --tint-surface-l: 92%;
+  --tint-surface-c: 0.045;
+  --tint-text-l: 32%;
+  --tint-text-c: 0.14;
+  --tint-subtext-l: 45%;
+  --tint-subtext-c: 0.11;
 }
 
 @theme inline {
@@ -41,6 +92,7 @@
   --color-foreground: var(--foreground);
   --color-accent: var(--accent);
   --color-accent-contrast: var(--accent-contrast);
+  --color-surface: var(--surface);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -48,5 +100,33 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+@keyframes terminal-caret {
+  0%, 45% {
+    opacity: 1;
+  }
+  50%, 100% {
+    opacity: 0;
+  }
+}
+
+@keyframes scanline-sweep {
+  from {
+    transform: translateX(-120%);
+  }
+  to {
+    transform: translateX(220%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

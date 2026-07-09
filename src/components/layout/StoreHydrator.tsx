@@ -5,6 +5,7 @@ import { useAppStore } from "@/lib/state/useAppStore";
 import { useCourseCatalog } from "@/lib/state/useCourseCatalog";
 import { useTimetable } from "@/lib/state/useTimetable";
 import { useBoard } from "@/lib/state/useBoard";
+import { useCalendars } from "@/lib/state/useCalendars";
 import { correctCdcChoiceElectives } from "@/lib/db/seed";
 import { DEFAULT_CALENDAR_ID } from "@/lib/constants";
 
@@ -15,6 +16,7 @@ export function StoreHydrator({ children }: { children: React.ReactNode }) {
   const loadCatalog = useCourseCatalog((s) => s.load);
   const loadTimetable = useTimetable((s) => s.load);
   const loadBoard = useBoard((s) => s.load);
+  const loadCalendars = useCalendars((s) => s.load);
 
   useEffect(() => {
     hydrate();
@@ -26,6 +28,7 @@ export function StoreHydrator({ children }: { children: React.ReactNode }) {
     correctCdcChoiceElectives().then(loadCatalog);
     loadTimetable(activeCalendarId ?? DEFAULT_CALENDAR_ID);
     loadBoard(activeCalendarId ?? DEFAULT_CALENDAR_ID);
+    loadCalendars();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isHydrated, activeCalendarId]);
 

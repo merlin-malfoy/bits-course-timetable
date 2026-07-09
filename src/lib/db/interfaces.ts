@@ -45,6 +45,7 @@ export interface CalendarRepository {
   getAll(): Promise<Calendar[]>;
   getById(id: string): Promise<Calendar | undefined>;
   upsert(calendar: Calendar): Promise<void>;
+  remove(id: string): Promise<void>;
 }
 
 export interface UserRepository {
@@ -56,4 +57,5 @@ export interface BoardRepository {
   getAllForCalendar(calendarId: string): Promise<BoardCourse[]>;
   addCourse(entry: BoardCourse): Promise<void>;
   removeByCourse(calendarId: string, courseId: string): Promise<void>;
+  removeAllForCalendar(calendarId: string): Promise<void>;
 }

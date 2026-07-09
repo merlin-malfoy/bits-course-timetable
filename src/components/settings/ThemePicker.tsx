@@ -23,13 +23,17 @@ export function ThemePicker() {
             style={{ background: "var(--background)", color: "var(--foreground)" }}
           >
             <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold">{theme.label}</span>
-              {isActive && <span className="text-xs font-medium" style={{ color: "var(--accent)" }}>Active</span>}
+              <span className="font-mono text-sm font-semibold">{theme.label}</span>
+              {isActive && (
+                <span className="font-mono text-xs font-medium" style={{ color: "var(--accent)" }}>
+                  active
+                </span>
+              )}
             </div>
-            <p className="text-xs opacity-60">{theme.description}</p>
+            <p className="text-xs opacity-70">{theme.description}</p>
             <span
               className="inline-block h-4 w-4 rounded-full"
-              style={{ background: "var(--accent)" }}
+              style={{ background: "var(--accent)", boxShadow: "0 0 6px 1px var(--accent)" }}
             />
           </button>
         );

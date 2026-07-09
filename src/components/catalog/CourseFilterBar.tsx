@@ -28,23 +28,23 @@ export function CourseFilterBar({
   showCategoryTypeFilter = true,
 }: CourseFilterBarProps) {
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-lg border border-foreground/10 p-3">
+    <div className="flex flex-wrap items-center gap-2 rounded-lg border border-foreground/10 p-3 font-mono text-sm">
       <input
         value={filters.search}
         onChange={(e) => onChange({ ...filters, search: e.target.value })}
-        placeholder="Search code or title…"
-        className="min-w-[10rem] flex-1 rounded-md border border-foreground/15 bg-background px-2 py-1.5 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/40"
+        placeholder="search code or title…"
+        className="min-w-[10rem] flex-1 rounded-md border border-foreground/15 bg-background px-2 py-1.5 outline-none focus:border-accent focus:ring-2 focus:ring-accent/40"
       />
 
       {showCategoryTypeFilter && (
         <select
           value={filters.categoryType}
           onChange={(e) => onChange({ ...filters, categoryType: e.target.value as CatalogFilters["categoryType"] })}
-          className="rounded-md border border-foreground/15 bg-background px-2 py-1.5 text-sm"
+          className="rounded-md border border-foreground/15 bg-background px-2 py-1.5"
         >
           {CATEGORY_TYPES.map((type) => (
             <option key={type} value={type}>
-              {type === "ALL" ? "All requirement types" : type}
+              {type === "ALL" ? "all requirement types" : type}
             </option>
           ))}
         </select>
@@ -53,9 +53,9 @@ export function CourseFilterBar({
       <select
         value={filters.vibeCategoryId}
         onChange={(e) => onChange({ ...filters, vibeCategoryId: e.target.value })}
-        className="rounded-md border border-foreground/15 bg-background px-2 py-1.5 text-sm"
+        className="rounded-md border border-foreground/15 bg-background px-2 py-1.5"
       >
-        <option value="ALL">All categories</option>
+        <option value="ALL">all categories</option>
         {categories.map((category) => (
           <option key={category.id} value={category.id}>
             {category.name}
@@ -66,9 +66,9 @@ export function CourseFilterBar({
       <select
         value={filters.department}
         onChange={(e) => onChange({ ...filters, department: e.target.value })}
-        className="rounded-md border border-foreground/15 bg-background px-2 py-1.5 text-sm"
+        className="rounded-md border border-foreground/15 bg-background px-2 py-1.5"
       >
-        <option value="ALL">All departments</option>
+        <option value="ALL">all departments</option>
         {departments.map((dept) => (
           <option key={dept} value={dept}>
             {dept}

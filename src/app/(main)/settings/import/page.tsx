@@ -54,7 +54,9 @@ export default function ImportPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-semibold">Import Course List</h1>
+      <h1 className="font-mono text-xl font-semibold">
+        <span className="text-accent">{">"}</span> import course list
+      </h1>
 
       {!plan && <ImportDropzone onFileSelected={handleFileSelected} isBusy={isParsing} />}
 

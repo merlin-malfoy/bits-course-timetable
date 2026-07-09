@@ -28,20 +28,23 @@ export function NameForm() {
 
   if (!editing && profile?.name) {
     return (
-      <div className="flex flex-col items-center gap-4">
-        <h1 className="text-2xl font-semibold">How are you, {profile.name}?</h1>
-        <div className="flex gap-3">
+      <div className="flex w-full max-w-xs flex-col items-center gap-4 rounded-lg border border-foreground/15 bg-surface p-6">
+        <p className="w-full font-mono text-xs text-foreground/60">
+          <span className="text-accent">{">"}</span> whoami
+        </p>
+        <h1 className="w-full font-mono text-xl font-semibold">{profile.name}</h1>
+        <div className="flex w-full gap-2">
           <button
             onClick={handleContinue}
-            className="rounded-md bg-accent px-5 py-2 text-sm font-medium text-accent-contrast transition-opacity hover:opacity-90"
+            className="flex-1 rounded-md bg-accent px-5 py-2 font-mono text-sm font-medium text-accent-contrast transition-opacity hover:opacity-90"
           >
-            Continue
+            Continue →
           </button>
           <button
             onClick={() => setEditing(true)}
-            className="rounded-md px-5 py-2 text-sm font-medium text-foreground/60 underline-offset-4 hover:text-foreground hover:underline"
+            className="rounded-md border border-foreground/15 px-4 py-2 font-mono text-sm font-medium text-foreground/70 transition-colors hover:border-foreground/30 hover:text-foreground"
           >
-            Not you? Change name
+            Not you?
           </button>
         </div>
       </div>
@@ -49,33 +52,41 @@ export function NameForm() {
   }
 
   return (
-    <div className="flex w-full max-w-xs flex-col items-center gap-4">
-      <h1 className="text-2xl font-semibold">How are you? What&apos;s your name?</h1>
-      <input
-        autoFocus
-        value={nameInput}
-        onChange={(e) => setNameInput(e.target.value)}
-        onKeyDown={(e) => e.key === "Enter" && handleContinue()}
-        placeholder="Your name"
-        className="w-full rounded-md border border-foreground/20 bg-background px-3 py-2 text-center text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/40"
-      />
-      <select
-        value={branchInput}
-        onChange={(e) => setBranchInput(e.target.value)}
-        className="w-full rounded-md border border-foreground/20 bg-background px-3 py-2 text-center text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent/40"
-      >
-        {branches.map((branch) => (
-          <option key={branch.code} value={branch.code}>
-            {branch.name} ({branch.code})
-          </option>
-        ))}
-      </select>
+    <div className="flex w-full max-w-xs flex-col gap-4 rounded-lg border border-foreground/15 bg-surface p-6">
+      <p className="font-mono text-xs text-foreground/60">
+        <span className="text-accent">{">"}</span> register --student
+      </p>
+      <label className="flex flex-col gap-1.5 font-mono text-xs text-foreground/60">
+        name
+        <input
+          autoFocus
+          value={nameInput}
+          onChange={(e) => setNameInput(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleContinue()}
+          placeholder="your name"
+          className="w-full rounded-md border border-foreground/20 bg-background px-3 py-2 font-mono text-sm text-foreground outline-none focus:border-accent focus:ring-2 focus:ring-accent/40"
+        />
+      </label>
+      <label className="flex flex-col gap-1.5 font-mono text-xs text-foreground/60">
+        branch
+        <select
+          value={branchInput}
+          onChange={(e) => setBranchInput(e.target.value)}
+          className="w-full rounded-md border border-foreground/20 bg-background px-3 py-2 font-mono text-sm text-foreground outline-none focus:border-accent focus:ring-2 focus:ring-accent/40"
+        >
+          {branches.map((branch) => (
+            <option key={branch.code} value={branch.code}>
+              {branch.name} ({branch.code})
+            </option>
+          ))}
+        </select>
+      </label>
       <button
         onClick={handleContinue}
         disabled={!nameInput.trim()}
-        className="rounded-md bg-accent px-5 py-2 text-sm font-medium text-accent-contrast transition-opacity hover:opacity-90 disabled:opacity-40"
+        className="rounded-md bg-accent px-5 py-2 font-mono text-sm font-medium text-accent-contrast transition-opacity hover:opacity-90 disabled:opacity-40"
       >
-        Continue
+        Continue →
       </button>
     </div>
   );

@@ -12,12 +12,12 @@ export function MinorSelector({ eligibleMinors, selectedMinorId, onSelect }: Min
   const isSelectedEligible = eligibleMinors.some(({ minor }) => minor.id === selectedMinorId);
 
   if (eligibleMinors.length === 0) {
-    return <p className="text-sm text-foreground/40">Not eligible for a minor yet — keep adding courses.</p>;
+    return <p className="font-mono text-sm text-foreground/60">not eligible for a minor yet — keep adding courses.</p>;
   }
 
   return (
-    <div className="flex items-center gap-2 text-sm text-foreground/70">
-      <span>Currently doing</span>
+    <div className="flex items-center gap-2 font-mono text-sm text-foreground/70">
+      <span>currently doing</span>
       <select
         value={isSelectedEligible ? selectedMinorId : ""}
         onChange={(e) => onSelect(e.target.value || null)}

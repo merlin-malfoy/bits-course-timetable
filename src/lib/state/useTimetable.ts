@@ -15,6 +15,9 @@ interface TimetableState {
   // `orderedEntryIds` gets `semesterNumber` + `order` (its index) written,
   // whether it's a plain reorder or a move in from a different semester.
   setSemesterOrder: (calendarId: string, semesterNumber: number, orderedEntryIds: string[]) => Promise<void>;
+  // Records the user's choice of which requirement a dual-eligible course's
+  // credits count toward (see electiveMinorAttribution.ts).
+  setEntryContribution: (entryId: string, contribution: TimetableEntry["creditContribution"]) => Promise<void>;
 }
 
 export const useTimetable = create<TimetableState>((set, get) => ({
@@ -60,6 +63,20 @@ export const useTimetable = create<TimetableState>((set, get) => ({
     set({ entries: previous.map((e) => changedById.get(e.id) ?? e) });
     try {
       await Promise.all(changed.map((e) => timetableRepository.updateEntry(e)));
+    } catch (err) {
+      set({ entries: previous });
+      throw err;
+    }
+  },
+
+  async setEntryContribution(entryId, contribution) {
+    const previous = get().entries;
+    const entry = previous.find((e) => e.id === entryId);
+    if (!entry) return;
+    const updated: TimetableEntry = { ...entry, creditContribution: contribution };
+    set({ entries: previous.map((e) => (e.id === entryId ? updated : e)) });
+    try {
+      await timetableRepository.updateEntry(updated);
     } catch (err) {
       set({ entries: previous });
       throw err;

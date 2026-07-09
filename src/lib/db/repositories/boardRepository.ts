@@ -22,4 +22,11 @@ export const boardRepository: BoardRepository = {
       tx.done,
     ]);
   },
+
+  async removeAllForCalendar(calendarId: string) {
+    const db = await getDb();
+    const entries = await db.getAllFromIndex("boardCourses", "calendarId", calendarId);
+    const tx = db.transaction("boardCourses", "readwrite");
+    await Promise.all([...entries.map((entry) => tx.store.delete(entry.id)), tx.done]);
+  },
 };

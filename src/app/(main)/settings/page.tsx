@@ -6,6 +6,7 @@ import { useAppStore } from "@/lib/state/useAppStore";
 import { useCourseCatalog } from "@/lib/state/useCourseCatalog";
 import { useTimetable } from "@/lib/state/useTimetable";
 import { ThemePicker } from "@/components/settings/ThemePicker";
+import { CalendarManager } from "@/components/settings/CalendarManager";
 import { seedCdcForBranch } from "@/lib/db/seed";
 import { DEFAULT_CALENDAR_ID } from "@/lib/constants";
 
@@ -44,24 +45,26 @@ export default function SettingsPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <h1 className="text-xl font-semibold">Settings</h1>
+      <h1 className="font-mono text-xl font-semibold">
+        <span className="text-accent">{">"}</span> settings
+      </h1>
 
-      <section className="flex flex-col gap-3 rounded-lg border border-foreground/10 p-4">
-        <h2 className="text-sm font-semibold">Profile</h2>
-        <label className="flex flex-col gap-1 text-sm">
-          Name
+      <section className="flex flex-col gap-3 rounded-lg border border-foreground/10 bg-surface p-4">
+        <h2 className="font-mono text-sm text-foreground/60">{"//"} profile</h2>
+        <label className="flex flex-col gap-1 font-mono text-sm">
+          name
           <input
             value={profile?.name ?? ""}
             onChange={(e) => setName(e.target.value)}
-            className="w-full max-w-xs rounded-md border border-foreground/15 bg-background px-2 py-1.5 text-sm"
+            className="w-full max-w-xs rounded-md border border-foreground/15 bg-background px-2 py-1.5"
           />
         </label>
-        <label className="flex flex-col gap-1 text-sm">
-          Branch
+        <label className="flex flex-col gap-1 font-mono text-sm">
+          branch
           <select
             value={profile?.branchCode ?? "A7"}
             onChange={(e) => setBranch(e.target.value)}
-            className="w-full max-w-xs rounded-md border border-foreground/15 bg-background px-2 py-1.5 text-sm"
+            className="w-full max-w-xs rounded-md border border-foreground/15 bg-background px-2 py-1.5"
           >
             {branches.map((branch) => (
               <option key={branch.code} value={branch.code}>
@@ -72,35 +75,44 @@ export default function SettingsPage() {
         </label>
       </section>
 
-      <section className="flex flex-col gap-3 rounded-lg border border-foreground/10 p-4">
-        <h2 className="text-sm font-semibold">Theme</h2>
+      <section className="flex flex-col gap-3 rounded-lg border border-foreground/10 bg-surface p-4">
+        <h2 className="font-mono text-sm text-foreground/60">{"//"} calendars</h2>
+        <p className="text-sm text-foreground/70">
+          Keep multiple plans side by side — switch which one Overview and Catalog operate on, or duplicate one to
+          try a different layout without losing the original. Head to Compare to view several at once.
+        </p>
+        <CalendarManager />
+      </section>
+
+      <section className="flex flex-col gap-3 rounded-lg border border-foreground/10 bg-surface p-4">
+        <h2 className="font-mono text-sm text-foreground/60">{"//"} theme</h2>
         <ThemePicker />
       </section>
 
-      <section className="flex flex-col gap-3 rounded-lg border border-foreground/10 p-4">
-        <h2 className="text-sm font-semibold">Data</h2>
-        <div className="flex flex-wrap gap-2">
+      <section className="flex flex-col gap-3 rounded-lg border border-foreground/10 bg-surface p-4">
+        <h2 className="font-mono text-sm text-foreground/60">{"//"} data</h2>
+        <div className="flex flex-wrap gap-2 font-mono text-sm">
           <Link
             href="/settings/import"
-            className="rounded-md border border-foreground/20 px-3 py-1.5 text-sm font-medium hover:bg-foreground/5"
+            className="rounded-md border border-foreground/20 px-3 py-1.5 font-medium hover:bg-foreground/5"
           >
-            Import course list (.xlsx/.csv)
+            import course list (.xlsx/.csv)
           </Link>
         </div>
       </section>
 
-      <section className="flex flex-col gap-3 rounded-lg border border-red-500/20 p-4">
-        <h2 className="text-sm font-semibold text-red-500">Danger zone</h2>
-        <p className="text-sm text-foreground/60">
+      <section className="flex flex-col gap-3 rounded-lg border border-red-500/30 bg-surface p-4">
+        <h2 className="font-mono text-sm text-red-500">{"//"} danger zone</h2>
+        <p className="text-sm text-foreground/70">
           Clear your entire semester plan and re-place the CDC curriculum into its original default semesters —
           undoes any manual moves, retakes, and electives. Your board is left as-is.
         </p>
         <button
           onClick={handleResetToCdcs}
           disabled={isResetting}
-          className="self-start rounded-md border border-red-500/40 px-3 py-1.5 text-sm font-medium text-red-500 hover:bg-red-500/10 disabled:opacity-50"
+          className="self-start rounded-md border border-red-500/40 px-3 py-1.5 font-mono text-sm font-medium text-red-500 hover:bg-red-500/10 disabled:opacity-50"
         >
-          {isResetting ? "Resetting…" : "Reset plan to original CDC layout"}
+          {isResetting ? "resetting…" : "reset plan to original cdc layout"}
         </button>
       </section>
     </div>

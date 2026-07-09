@@ -15,8 +15,9 @@ export function QuoteCard() {
   }, []);
 
   return (
-    <p className="max-w-sm text-center text-sm italic text-foreground/60">
-      {quote ?? " "}
-    </p>
+    <div className="flex max-w-sm flex-col gap-1 text-center">
+      <p className="font-mono text-[10px] uppercase tracking-wide text-foreground/50">motd</p>
+      <p className="text-sm italic text-foreground/70">{quote ?? " "}</p>
+    </div>
   );
 }

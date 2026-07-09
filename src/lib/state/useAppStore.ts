@@ -15,6 +15,9 @@ interface AppState {
   setBranch: (branchCode: string) => Promise<void>;
   setTheme: (themeId: string) => Promise<void>;
   setSelectedMinor: (minorId: string | null) => Promise<void>;
+  // StoreHydrator reactively reloads the timetable/board stores whenever
+  // profile.activeCalendarId changes — no extra wiring needed here.
+  setActiveCalendar: (calendarId: string) => Promise<void>;
 }
 
 function profileWithDefaults(current: UserProfile | null, patch: Partial<UserProfile>): UserProfile {
@@ -61,6 +64,12 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   async setSelectedMinor(minorId: string | null) {
     const next = profileWithDefaults(get().profile, { selectedMinorId: minorId ?? undefined });
+    set({ profile: next });
+    await userRepository.upsert(next);
+  },
+
+  async setActiveCalendar(calendarId: string) {
+    const next = profileWithDefaults(get().profile, { activeCalendarId: calendarId });
     set({ profile: next });
     await userRepository.upsert(next);
   },

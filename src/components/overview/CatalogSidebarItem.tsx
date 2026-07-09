@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useDraggable } from "@dnd-kit/core";
 import type { Course } from "@/types/course";
-import { getDepartmentColor } from "@/lib/theme/departmentColors";
+import { getCategoryTypeColor, categoryTypeInitial } from "@/lib/theme/categoryTypeColors";
 import { categoryTypeLabel } from "@/lib/scheduling/creditRules";
 
 interface CatalogSidebarItemProps {
@@ -15,7 +15,7 @@ interface CatalogSidebarItemProps {
 const TOOLTIP_WIDTH = 224;
 
 export function CatalogSidebarItem({ course, onRemoveFromBoard }: CatalogSidebarItemProps) {
-  const colors = getDepartmentColor(course.department);
+  const colors = getCategoryTypeColor(course.categoryType);
   const { setNodeRef, attributes, listeners, isDragging } = useDraggable({ id: `catalog:${course.id}` });
   const itemRef = useRef<HTMLDivElement>(null);
   const [tooltipPosition, setTooltipPosition] = useState<{ top: number; left: number } | null>(null);
@@ -45,7 +45,8 @@ export function CatalogSidebarItem({ course, onRemoveFromBoard }: CatalogSidebar
         ref={setRefs}
         onMouseEnter={showTooltip}
         onMouseLeave={() => setTooltipPosition(null)}
-        className={`group relative flex cursor-grab touch-none items-center gap-2 rounded-lg border px-2 py-1.5 active:cursor-grabbing ${colors.card} ${
+        style={colors.cardStyle}
+        className={`group relative flex cursor-grab touch-none select-none items-center gap-2 rounded-lg border px-2 py-1.5 active:cursor-grabbing ${
           isDragging ? "opacity-40" : ""
         }`}
         {...attributes}
@@ -54,19 +55,29 @@ export function CatalogSidebarItem({ course, onRemoveFromBoard }: CatalogSidebar
         <button
           onClick={onRemoveFromBoard}
           aria-label={`Remove ${course.code} from the board`}
-          className={`absolute right-1 top-1 hidden h-4 w-4 items-center justify-center rounded-full bg-black/10 text-[10px] leading-none hover:bg-black/20 group-hover:flex ${colors.text}`}
+          style={colors.textStyle}
+          className="absolute right-1 top-1 hidden h-4 w-4 items-center justify-center rounded-full bg-black/20 text-[10px] leading-none hover:bg-black/30 group-hover:flex group-focus-within:flex"
         >
           ×
         </button>
 
-        <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[9px] font-bold ${colors.icon}`}>
-          {course.department.slice(0, 3).toUpperCase()}
+        <span
+          style={colors.iconStyle}
+          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full font-mono text-[9px] font-bold"
+        >
+          {categoryTypeInitial(course.categoryType)}
         </span>
         <div className="min-w-0 flex-1">
-          <p className={`truncate text-xs font-semibold ${colors.text}`}>{course.code}</p>
-          <p className={`truncate text-[10px] ${colors.subtext}`}>{course.title}</p>
+          <p className="truncate font-mono text-xs font-semibold" style={colors.textStyle}>
+            {course.code}
+          </p>
+          <p className="truncate text-[10px]" style={colors.subtextStyle}>
+            {course.title}
+          </p>
         </div>
-        <span className={`shrink-0 text-[10px] font-medium ${colors.subtext}`}>{course.credits}cr</span>
+        <span className="shrink-0 font-mono text-[10px] font-medium" style={colors.subtextStyle}>
+          {course.credits}cr
+        </span>
       </div>
 
       {tooltipPosition &&

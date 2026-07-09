@@ -9,8 +9,8 @@ interface MinorCourseSelectorProps {
 
 export function MinorCourseSelector({ selectedMinorId, onSelect }: MinorCourseSelectorProps) {
   return (
-    <div className="flex items-center gap-2 text-sm text-foreground/70">
-      <span>Browsing</span>
+    <div className="flex items-center gap-2 font-mono text-sm text-foreground/70">
+      <span>browsing</span>
       <select
         value={selectedMinorId}
         onChange={(e) => onSelect(e.target.value)}

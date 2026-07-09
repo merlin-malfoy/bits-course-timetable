@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useDraggable } from "@dnd-kit/core";
 import type { Course } from "@/types/course";
-import { getMinorRoleColor } from "@/lib/theme/minorRoleColors";
+import { getCategoryTypeColor } from "@/lib/theme/categoryTypeColors";
 import { categoryTypeLabel } from "@/lib/scheduling/creditRules";
 
 interface MinorSidebarItemProps {
@@ -17,12 +17,13 @@ const TOOLTIP_WIDTH = 224;
 
 // Draggable source for the Overview sidebar's "Minor" tab — same drag
 // mechanics as CatalogSidebarItem (synthetic `catalog:{courseId}` id, so
-// overview/page.tsx's existing drop-handling needs no changes), just colored
-// by minor role instead of department and without a "remove" affordance
-// since this list isn't a persisted board — it's a live browse of the
-// selected minor's courses.
+// overview/page.tsx's existing drop-handling needs no changes) and without a
+// "remove" affordance since this list isn't a persisted board — it's a live
+// browse of the selected minor's courses. Colored by categoryType like every
+// other course surface in the app; core/elective role is a plain C/E badge,
+// not a color, so the two concerns don't compete for the same channel.
 export function MinorSidebarItem({ course, role, isProjectType }: MinorSidebarItemProps) {
-  const colors = getMinorRoleColor(role);
+  const colors = getCategoryTypeColor(course.categoryType);
   const { setNodeRef, attributes, listeners, isDragging } = useDraggable({ id: `catalog:${course.id}` });
   const itemRef = useRef<HTMLDivElement>(null);
   const [tooltipPosition, setTooltipPosition] = useState<{ top: number; left: number } | null>(null);
@@ -49,25 +50,32 @@ export function MinorSidebarItem({ course, role, isProjectType }: MinorSidebarIt
         ref={setRefs}
         onMouseEnter={showTooltip}
         onMouseLeave={() => setTooltipPosition(null)}
-        className={`group relative flex cursor-grab touch-none items-center gap-2 rounded-lg border px-2 py-1.5 active:cursor-grabbing ${colors.card} ${
+        style={colors.cardStyle}
+        className={`group relative flex cursor-grab touch-none select-none items-center gap-2 rounded-lg border px-2 py-1.5 active:cursor-grabbing ${
           isDragging ? "opacity-40" : ""
         }`}
         {...attributes}
         {...listeners}
       >
-        <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[9px] font-bold ${colors.icon}`}>
+        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-foreground/15 font-mono text-[9px] font-bold text-foreground/80">
           {role === "core" ? "C" : "E"}
         </span>
         <div className="min-w-0 flex-1">
-          <p className={`truncate text-xs font-semibold ${colors.text}`}>{course.code}</p>
-          <p className={`truncate text-[10px] ${colors.subtext}`}>{course.title}</p>
+          <p className="truncate font-mono text-xs font-semibold" style={colors.textStyle}>
+            {course.code}
+          </p>
+          <p className="truncate text-[10px]" style={colors.subtextStyle}>
+            {course.title}
+          </p>
         </div>
         {isProjectType && (
-          <span className="shrink-0 rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-medium text-amber-700">
-            Project
+          <span className="shrink-0 rounded-full bg-amber-500/20 px-1.5 py-0.5 font-mono text-[9px] font-medium text-amber-500">
+            project
           </span>
         )}
-        <span className={`shrink-0 text-[10px] font-medium ${colors.subtext}`}>{course.credits}cr</span>
+        <span className="shrink-0 font-mono text-[10px] font-medium" style={colors.subtextStyle}>
+          {course.credits}cr
+        </span>
       </div>
 
       {tooltipPosition &&

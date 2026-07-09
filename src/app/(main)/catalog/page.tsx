@@ -7,10 +7,12 @@ import { useTimetable } from "@/lib/state/useTimetable";
 import { useBoard } from "@/lib/state/useBoard";
 import { computeElectiveProgress } from "@/lib/scheduling/creditRules";
 import { seedCdcForBranch, seedMinorsData, seedElectivesForBranch } from "@/lib/db/seed";
+import { useElectiveMinorPrompt } from "@/lib/state/useElectiveMinorPrompt";
 import { CourseFilterBar, type CatalogFilters } from "@/components/catalog/CourseFilterBar";
 import { CategorySection } from "@/components/catalog/CategorySection";
 import { ElectiveProgressPanel } from "@/components/catalog/ElectiveProgressPanel";
 import { CatalogTabs, type CatalogTab } from "@/components/catalog/CatalogTabs";
+import { ElectiveMinorChoiceDialog } from "@/components/ui/ElectiveMinorChoiceDialog";
 import { DEFAULT_CALENDAR_ID } from "@/lib/constants";
 
 const DEFAULT_FILTERS: CatalogFilters = {
@@ -37,6 +39,9 @@ export default function CatalogPage() {
   const boardEntries = useBoard((s) => s.entries);
   const addToBoard = useBoard((s) => s.addCourse);
   const removeFromBoard = useBoard((s) => s.removeCourse);
+
+  const { pendingCourse, pendingMinorName, pendingContribution, checkAndPrompt, choose, dismiss } =
+    useElectiveMinorPrompt();
 
   const [filters, setFilters] = useState<CatalogFilters>(DEFAULT_FILTERS);
   const [activeTab, setActiveTab] = useState<CatalogTab>("DEL");
@@ -84,14 +89,14 @@ export default function CatalogPage() {
     return map;
   }, [entries, calendarId]);
 
-  const allAddedCourses = useMemo(() => {
+  const electiveProgressCourses = useMemo(() => {
     return entries
-      .filter((e) => e.calendarId === calendarId)
+      .filter((e) => e.calendarId === calendarId && e.creditContribution !== "MINOR")
       .map((e) => courseById.get(e.courseId))
       .filter((c): c is NonNullable<typeof c> => Boolean(c));
   }, [entries, calendarId, courseById]);
 
-  const electiveProgress = useMemo(() => computeElectiveProgress(allAddedCourses), [allAddedCourses]);
+  const electiveProgress = useMemo(() => computeElectiveProgress(electiveProgressCourses), [electiveProgressCourses]);
 
   const uncategorizedCourses = useMemo(
     () => filteredCourses.filter((c) => c.categoryIds.length === 0),
@@ -104,7 +109,9 @@ export default function CatalogPage() {
   );
 
   async function handleAdd(courseId: string, semesterNumber: number) {
-    await addEntry(calendarId, courseId, semesterNumber);
+    const entryId = await addEntry(calendarId, courseId, semesterNumber);
+    const course = courseById.get(courseId);
+    if (course) checkAndPrompt(entryId, course);
   }
 
   async function handleRemove(courseId: string, semesterNumber: number) {
@@ -153,28 +160,30 @@ export default function CatalogPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold">Course Catalog</h1>
-        <div className="flex gap-2">
+        <h1 className="font-mono text-xl font-semibold">
+          <span className="text-accent">{">"}</span> catalog
+        </h1>
+        <div className="flex flex-wrap gap-2 font-mono text-sm">
           <button
             onClick={handleLoadCdcs}
             disabled={isSeedingCdc}
-            className="rounded-md border border-foreground/20 px-3 py-1.5 text-sm font-medium hover:bg-foreground/5 disabled:opacity-50"
+            className="rounded-md border border-foreground/20 px-3 py-1.5 font-medium hover:bg-foreground/5 disabled:opacity-50"
           >
-            {isSeedingCdc ? "Loading CDCs…" : `Load ${branchCode} CDCs`}
+            {isSeedingCdc ? "loading cdcs…" : `load ${branchCode} cdcs`}
           </button>
           <button
             onClick={handleLoadElectives}
             disabled={isSeedingElectives}
-            className="rounded-md border border-foreground/20 px-3 py-1.5 text-sm font-medium hover:bg-foreground/5 disabled:opacity-50"
+            className="rounded-md border border-foreground/20 px-3 py-1.5 font-medium hover:bg-foreground/5 disabled:opacity-50"
           >
-            {isSeedingElectives ? "Loading electives…" : `Load ${branchCode} DEL/HUEL/OPEL`}
+            {isSeedingElectives ? "loading electives…" : `load ${branchCode} del/huel/opel`}
           </button>
           <button
             onClick={handleLoadMinors}
             disabled={isSeedingMinors}
-            className="rounded-md border border-foreground/20 px-3 py-1.5 text-sm font-medium hover:bg-foreground/5 disabled:opacity-50"
+            className="rounded-md border border-foreground/20 px-3 py-1.5 font-medium hover:bg-foreground/5 disabled:opacity-50"
           >
-            {isSeedingMinors ? "Loading minors…" : "Load minors electives"}
+            {isSeedingMinors ? "loading minors…" : "load minors electives"}
           </button>
         </div>
       </div>
@@ -218,11 +227,19 @@ export default function CatalogPage() {
       </div>
 
       {filteredCourses.length === 0 && (
-        <p className="text-sm text-foreground/50">
-          No courses match your filters yet. Try &quot;Load {branchCode} CDCs&quot; above, or import your course list
-          from Settings.
+        <p className="font-mono text-sm text-foreground/60">
+          no courses match your filters yet. try &quot;load {branchCode} cdcs&quot; above, or import your course list
+          from settings.
         </p>
       )}
+
+      <ElectiveMinorChoiceDialog
+        course={pendingCourse}
+        minorName={pendingMinorName}
+        currentContribution={pendingContribution}
+        onChoose={choose}
+        onClose={dismiss}
+      />
     </div>
   );
 }
